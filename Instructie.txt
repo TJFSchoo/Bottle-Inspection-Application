@@ -1,0 +1,19 @@
+# Eindopdracht Inleiding Vision
+# Tom Schoonbeek 2032257 & Djim Oomes 2122380
+
+Problemen bij het starten van het python-script komen door mismatch met Python OpenCV versies. Om dit te verhelpen:
+1.	pip install opencv-contrib-python
+2.	conda install -c menpo opencv
+in Anaconda.
+
+Standaard staat de check ingesteld op het camerabeeld. In de code is ook het mogelijk om sample images te gebruiken van flessen waarop de applicatie is ingesteld.
+Dit doe je door de volgende code in- en uit te commenten:
+
+# Foto inladen die net is opgeslagen
+        bottle_3_channel = cv2.imread(img_name)
+        
+# Sample images als alternatief
+        #bottle_3_channel = cv2.imread('fles_sample_correct.png')
+        #bottle_3_channel = cv2.imread('fles_sample_high.png')
+        #bottle_3_channel = cv2.imread('fles_sample_low.png')
+        #bottle_3_channel = cv2.imread('fles_sample_nolid.png')

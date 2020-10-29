@@ -44,10 +44,10 @@ while True:
         print(">> {} vastgelegd en geschreven naar bestand".format(img_name))
         
         # Foto inladen die net is opgeslagen
-        #bottle_3_channel = cv2.imread(img_name)
+        bottle_3_channel = cv2.imread(img_name)
         
         # Sample images als alternatief
-        bottle_3_channel = cv2.imread('fles_sample_correct.png')
+        #bottle_3_channel = cv2.imread('fles_sample_correct.png')
         #bottle_3_channel = cv2.imread('fles_sample_high.png')
         #bottle_3_channel = cv2.imread('fles_sample_low.png')
         #bottle_3_channel = cv2.imread('fles_sample_nolid.png')

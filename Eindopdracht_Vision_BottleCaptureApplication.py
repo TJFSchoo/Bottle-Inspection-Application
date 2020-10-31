@@ -6,9 +6,24 @@
 import cv2
 import numpy as np
 import math
+import time
+import RPi.GPIO as GPIO
 
 # Eindopdracht Inleiding Vision
 # Tom Schoonbeek 2032257 & Djim Oomes 2122380
+
+# LED setup
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(17,GPIO.OUT)
+GPIO.setup(18,GPIO.OUT)
+GPIO.setup(22,GPIO.OUT)
+GPIO.setup(23,GPIO.OUT)
+
+GPIO.output(17,False)
+GPIO.output(18,False)
+GPIO.output(22,False)
+GPIO.output(23,False)
 
 # Webcam variabele
 cam = cv2.VideoCapture(0)
@@ -20,7 +35,7 @@ cv2.namedWindow("Bottle Inspection")
 img_counter = 0
 
 # Runtime loop
-while True:
+while True:    
     ret, frame = cam.read()
     if not ret:
         print("Fout bij verbinden met camera.")
@@ -65,7 +80,7 @@ while True:
         print('>> Gaussian Blur toegepast.')
         gaussian_bottle_screen_output = bottle_gray.copy()
         cv2.putText(gaussian_bottle_screen_output, '1. Gaussian Blur', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow("Gaussian Blur", gaussian_bottle_screen_output)
+        cv2.imshow("Bottle Inspection", gaussian_bottle_screen_output)
         cv2.waitKey(0)
 
         # Thresholding
@@ -73,7 +88,7 @@ while True:
         
         # Gehele fles
         gaussian_bottle_copy = gaussian_bottle.copy()
-        threshold_value = 130.5
+        threshold_value = 80.5
         kernel = np.ones((5,5),np.uint8)
         (T, bottle_threshold_full) = cv2.threshold(gaussian_bottle_copy, threshold_value, 255, cv2.THRESH_BINARY_INV)
         # Closing tussendoor voor witte puntjes
@@ -81,7 +96,7 @@ while True:
         bottle_threshold_full_screen_output = closing.copy()
         cv2.putText(bottle_threshold_full_screen_output, "fles", (10, 410), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), 2)
         cv2.putText(bottle_threshold_full_screen_output, '2. Thresholding', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        cv2.imshow("Thresholding", bottle_threshold_full_screen_output)
+        cv2.imshow("Bottle Inspection", bottle_threshold_full_screen_output)
         cv2.waitKey(0)
         
         # Inhoud + dop (apart ivm transparantie fles)
@@ -92,7 +107,7 @@ while True:
         print('>> Thresholding toegepast.')
         cv2.putText(bottle_threshold_screen_output, "inhoud & dop", (10, 410), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), 2)
         cv2.putText(bottle_threshold_screen_output, '2. Thresholding', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
-        cv2.imshow("Thresholding", bottle_threshold_screen_output)
+        cv2.imshow("Bottle Inspection", bottle_threshold_screen_output)
         cv2.waitKey(0)
 
         # Gradient
@@ -100,11 +115,10 @@ while True:
 
         # Gehele fles 
         contour_bottle_full = cv2.morphologyEx(closing,cv2.MORPH_GRADIENT,kernel)
-        print('>> Gradient toegepast.')
         contour_bottle_full_screen_output = contour_bottle_full.copy()
         cv2.putText(contour_bottle_full_screen_output, "fles", (10, 410), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
         cv2.putText(contour_bottle_full_screen_output, '3. Gradient', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow("Gradient", contour_bottle_full_screen_output)
+        cv2.imshow("Bottle Inspection", contour_bottle_full_screen_output)
         cv2.waitKey(0)
 
         # Inhoud + dop (apart ivm transparantie fles)
@@ -113,11 +127,11 @@ while True:
         contour_bottle_screen_output = contour_bottle.copy()
         cv2.putText(contour_bottle_screen_output, "inhoud & dop", (10, 410), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
         cv2.putText(contour_bottle_screen_output, '3. Gradient', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow("Gradient", contour_bottle_screen_output)
+        cv2.imshow("Bottle Inspection", contour_bottle_screen_output)
         cv2.waitKey(0)
 
         # External contours (fles) berekenen aan de hand van thresholded image
-        contours, hierarchy = cv2.findContours(contour_bottle_full, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(contour_bottle_full, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)[-2:]
         print('>> Externe contouren berekend.')
         external_contours = np.zeros(contour_bottle_full.shape)
         for i in range(len(contours)):
@@ -130,11 +144,11 @@ while True:
         cv2.drawContours(bottle_clone, [contours[i]], -1, (255, 0, 0), 2)
         bottle_clone_screen_output = bottle_clone.copy()
         cv2.putText(bottle_clone_screen_output, '4. Contour fles', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow("Contour fles", bottle_clone_screen_output)
+        cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
         cv2.waitKey(0)
         
         # Internal contours (vloeistof+flesdop) berekenen aan de hand van thresholded image
-        contours, hierarchy = cv2.findContours(contour_bottle, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(contour_bottle, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)[-2:]
         print('>> Interne contouren berekend.')
         internal_contours = np.zeros(contour_bottle.shape)
         for i in range(len(contours)):
@@ -151,7 +165,7 @@ while True:
         cv2.drawContours(bottle_clone, [contours[i]], -1, (255, 0, 0), 2)
         bottle_clone_screen_output = bottle_clone.copy()
         cv2.putText(bottle_clone_screen_output, '5. Contour inhoud', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow("Contour inhoud", bottle_clone_screen_output)
+        cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
         cv2.waitKey(0)
         
         # Contour Flesdop (derde-grootste contour)
@@ -160,7 +174,7 @@ while True:
         cv2.drawContours(bottle_clone, [contours[j]], -1, (255, 0, 0), 2)
         bottle_clone_screen_output = bottle_clone.copy()
         cv2.putText(bottle_clone_screen_output, '6. Contour dop', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.imshow("Contour dop", bottle_clone_screen_output)
+        cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
         cv2.waitKey(0)
         
         ## Controle 80-90% flesinhoud
@@ -184,6 +198,7 @@ while True:
             cv2.putText(bottle_clone_screen_output, "Correct", (x + 10, y + 20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
             cv2.putText(bottle_clone_screen_output, str(percentFinalRounded) + "%", (x + 10, y + 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
             cv2.putText(bottle_clone_screen_output, '7. Controle inhoud', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            GPIO.output(23,True)
             print('>>>> PASS!')
             bottle_contents_check = 1;
         else:
@@ -191,9 +206,10 @@ while True:
             cv2.putText(bottle_clone_screen_output, "Incorrect", (x + 10, y + 20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
             cv2.putText(bottle_clone_screen_output, str(percentFinalRounded) + "%", (x + 10, y + 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
             cv2.putText(bottle_clone_screen_output, '7. Controle inhoud', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+            GPIO.output(22,True)
             print('>>>> FAIL!')
             bottle_contents_check = 0;
-        cv2.imshow("Controle flesinhoud", bottle_clone_screen_output)
+        cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
         cv2.waitKey(0)
         
         ## Controle flesdop via Feature Matching (met FLANN-based matcher)
@@ -232,16 +248,18 @@ while True:
             print('>>>> Geen match gevonden.')
             print('>>>> FAIL!')
             cv2.putText(flann_matches_screen_output, '8. Controle dop', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-            cv2.imshow("Controle flesdop", flann_matches_screen_output)
+            cv2.imshow("Bottle Inspection", flann_matches_screen_output)
             bottle_cap_check = 0;
+            GPIO.output(17,True)
             cv2.waitKey(0)
         else:
             cv2.putText(flann_matches_screen_output, "Match", (x + 10, y + 20), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
             print('>>>> Match gevonden.')
             print('>>>> PASS!')
             cv2.putText(flann_matches_screen_output, '8. Controle dop', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.imshow("Controle flesdop", flann_matches_screen_output)
+            cv2.imshow("Bottle Inspection", flann_matches_screen_output)
             bottle_cap_check = 1;
+            GPIO.output(18,True)
             cv2.waitKey(0)
             
         # Final keuring
@@ -249,15 +267,19 @@ while True:
             approved_img = cv2.imread('quality_approved.jpg',1)
             print('>> Alle controles PASSED! Fles goedgekeurd.')
             print('>> ')
-            cv2.imshow("Fles goedgekeurd", approved_img)
+            cv2.imshow("Bottle Inspection", approved_img)
             cv2.waitKey(0)
         else:
             rejected_img = cv2.imread('quality_rejected.jpg',1)
             print('>> Eén of meerdere controles FAILED! Fles afgekeurd.')
             print('>> ')
-            cv2.imshow("Fles afgekeurd", rejected_img)
+            cv2.imshow("Bottle Inspection", rejected_img)
             cv2.waitKey(0)
         
+        GPIO.output(17,False)
+        GPIO.output(18,False)
+        GPIO.output(22,False)
+        GPIO.output(23,False)
         cv2.destroyAllWindows()
         
 cam.release()

@@ -14,7 +14,6 @@ import Adafruit_SSD1306
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-import subprocess
 
 # Eindopdracht Inleiding Vision
 # Tom Schoonbeek 2032257 & Djim Oomes 2122380
@@ -56,8 +55,8 @@ bottom = height-padding
 # Move left to right keeping track of the current x position for drawing shapes.
 # Load default font.
 #font = ImageFont.load_default()
-font = ImageFont.truetype('Righteous-Regular.ttf', 14)
-big_font = ImageFont.truetype('Righteous-Regular.ttf', 20)
+font = ImageFont.truetype('/home/pi/BottleCaptureApplication/Righteous-Regular.ttf', 14)
+big_font = ImageFont.truetype('/home/pi/BottleCaptureApplication/Righteous-Regular.ttf', 20)
 
 # LED setup
 GPIO.setmode(GPIO.BCM)
@@ -90,7 +89,7 @@ while True:
         break
     frame_copy = frame.copy()
     cv2.putText(frame_copy, 'Klaar voor scan', (30,30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 2, cv2.LINE_AA)
-    cv2.putText(frame_copy, "Druk op de knop", (30, 450), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
+    cv2.putText(frame_copy, "Druk op de Scan-knop", (30, 450), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
     cv2.imshow("Bottle Inspection", frame_copy)
     
     draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -114,22 +113,22 @@ while True:
     #elif k%256 == 32 | GPIO.input(24) == GPIO.HIGH:
     elif GPIO.input(24) == GPIO.HIGH:
         # SPACE
-        img_name = "fles_{}.png".format(img_counter)
+        img_name = "bottle_inspected.png"
         cv2.imwrite(img_name, frame)
-        print(">>  {} vastgelegd en geschreven naar bestand".format(img_name))
+        print(">>  Fles vastgelegd en geschreven naar bestand".format(img_name))
         
         # Foto inladen die net is opgeslagen
         bottle_3_channel = cv2.imread(img_name)
         
         # Sample images als alternatief
-        #bottle_3_channel = cv2.imread('fles_sample_correct.png')
-        #bottle_3_channel = cv2.imread('fles_sample_high.png')
-        #bottle_3_channel = cv2.imread('fles_sample_low.png')
-        #bottle_3_channel = cv2.imread('fles_sample_nolid.png')
+        #bottle_3_channel = cv2.imread('/home/pi/BottleCaptureApplication/fles_sample_correct.png')
+        #bottle_3_channel = cv2.imread('/home/pi/BottleCaptureApplication/fles_sample_high.png')
+        #bottle_3_channel = cv2.imread('/home/pi/BottleCaptureApplication/fles_sample_low.png')
+        #bottle_3_channel = cv2.imread('/home/pi/BottleCaptureApplication/fles_sample_nolid.png')
         
         # Afbeelding grijswaarde
         bottle_gray = cv2.split(bottle_3_channel)[0]
-        
+       
         # Check variabelen voor beide checks later in de code
         bottle_contents_check = 0;
         bottle_cap_check = 0;
@@ -318,7 +317,7 @@ while True:
         sift = cv2.xfeatures2d.SIFT_create()
         
         # Source (afbeelding van correct-geplaatste flesdop) + target
-        source = cv2.imread('bottle_cap_sample.png', 0)     
+        source = cv2.imread('/home/pi/BottleCaptureApplication/bottle_cap_sample.png', 0)     
         target = bottle_3_channel.copy()   
 
         # find the keypoints and descriptors with SIFT
@@ -376,7 +375,7 @@ while True:
             
         # Final keuring
         if bottle_contents_check == 1 and bottle_cap_check == 1:
-            approved_img = cv2.imread('quality_approved.jpg',1)
+            approved_img = cv2.imread('/home/pi/BottleCaptureApplication/quality_approved.jpg',1)
             print('>>  Alle controles PASSED! Fles goedgekeurd.')
             print('>>  ')
             cv2.imshow("Bottle Inspection", approved_img)
@@ -406,9 +405,8 @@ while True:
             GPIO.output(18,False)
             GPIO.output(22,False)
             GPIO.output(23,False)
-            cv2.waitKey(0)
         else:
-            rejected_img = cv2.imread('quality_rejected.jpg',1)
+            rejected_img = cv2.imread('/home/pi/BottleCaptureApplication/quality_rejected.jpg',1)
             print('>>  Eén of meerdere controles FAILED! Fles afgekeurd.')
             print('>>  ')
             cv2.imshow("Bottle Inspection", rejected_img)

@@ -66,6 +66,7 @@ GPIO.setup(17,GPIO.OUT)
 GPIO.setup(18,GPIO.OUT)
 GPIO.setup(22,GPIO.OUT)
 GPIO.setup(23,GPIO.OUT)
+GPIO.setup(24,GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 GPIO.output(17,False)
 GPIO.output(18,False)
@@ -82,14 +83,14 @@ cv2.namedWindow("Bottle Inspection")
 img_counter = 0
 
 # Runtime loop
-while True:    
+while True:
     ret, frame = cam.read()
     if not ret:
         print("Fout bij verbinden met camera.")
         break
     frame_copy = frame.copy()
     cv2.putText(frame_copy, 'Klaar voor scan', (30,30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 2, cv2.LINE_AA)
-    cv2.putText(frame_copy, "Navigeer met spatie door het proces heen.", (30, 450), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
+    cv2.putText(frame_copy, "Druk op de knop", (30, 450), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
     cv2.imshow("Bottle Inspection", frame_copy)
     
     draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -110,7 +111,8 @@ while True:
         disp.image(image)
         disp.display()
         break
-    elif k%256 == 32:
+    #elif k%256 == 32 | GPIO.input(24) == GPIO.HIGH:
+    elif GPIO.input(24) == GPIO.HIGH:
         # SPACE
         img_name = "fles_{}.png".format(img_counter)
         cv2.imwrite(img_name, frame)
@@ -387,26 +389,23 @@ while True:
             disp.image(image)
             disp.display()
             
-            GPIO.output(17,False)
-            GPIO.output(18,True)
-            GPIO.output(22,False)
-            GPIO.output(23,True)
-            cv2.waitKey(500)
-            GPIO.output(17,False)
-            GPIO.output(18,False)
-            GPIO.output(22,False)
-            GPIO.output(23,False)
-            cv2.waitKey(500)
-            GPIO.output(17,False)
-            GPIO.output(18,True)
-            GPIO.output(22,False)
-            GPIO.output(23,True)
-            cv2.waitKey(500)
+            count = 3
+            while(count >= 0):
+                GPIO.output(17,False)
+                GPIO.output(18,False)
+                GPIO.output(22,False)
+                GPIO.output(23,True)
+                cv2.waitKey(500)
+                GPIO.output(17,False)
+                GPIO.output(18,True)
+                GPIO.output(22,False)
+                GPIO.output(23,False)
+                cv2.waitKey(500)
+                count = count - 1
             GPIO.output(17,False)
             GPIO.output(18,False)
             GPIO.output(22,False)
             GPIO.output(23,False)
-            cv2.waitKey(500)
             cv2.waitKey(0)
         else:
             rejected_img = cv2.imread('quality_rejected.jpg',1)
@@ -422,27 +421,24 @@ while True:
             draw.text((0, top+10),       "afgekeurd ",  font=big_font, fill=255)
             disp.image(image)
             disp.display()
-            GPIO.output(17,True)
-            GPIO.output(18,False)
-            GPIO.output(22,True)
-            GPIO.output(23,False)
-            cv2.waitKey(500)
+            count = 3
+            while(count >= 0):
+                GPIO.output(17,False)
+                GPIO.output(18,False)
+                GPIO.output(22,True)
+                GPIO.output(23,False)
+                cv2.waitKey(500)
+                GPIO.output(17,True)
+                GPIO.output(18,False)
+                GPIO.output(22,False)
+                GPIO.output(23,False)
+                cv2.waitKey(500)
+                count = count - 1
             GPIO.output(17,False)
             GPIO.output(18,False)
             GPIO.output(22,False)
             GPIO.output(23,False)
-            cv2.waitKey(500)
-            GPIO.output(17,True)
-            GPIO.output(18,False)
-            GPIO.output(22,True)
-            GPIO.output(23,False)
-            cv2.waitKey(500)
-            GPIO.output(17,False)
-            GPIO.output(18,False)
-            GPIO.output(22,False)
-            GPIO.output(23,False)
-            cv2.waitKey(500)
-            cv2.waitKey(0)
+            
         
         GPIO.output(17,False)
         GPIO.output(18,False)

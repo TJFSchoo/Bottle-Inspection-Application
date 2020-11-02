@@ -15,6 +15,8 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+from phue import Bridge
+
 # Eindopdracht Inleiding Vision
 # Tom Schoonbeek 2032257 & Djim Oomes 2122380
 
@@ -75,6 +77,15 @@ GPIO.output(23,False)
 # Webcam variabele
 cam = cv2.VideoCapture(0)
 
+b = Bridge('192.168.178.15')
+b.connect()
+b.get_api()
+b.set_light('Hoeklamp', 'on', True)
+b.set_light('Hoeklamp', 'hue', 55000)
+b.set_light('Hoeklamp', 'bri', 137)
+b.set_light('Hoeklamp', 'saturation', 255)
+
+
 # Camera Capture scherm
 cv2.namedWindow("Bottle Inspection")
 
@@ -83,6 +94,7 @@ img_counter = 0
 
 # Runtime loop
 while True:
+    b.set_light('Hoeklamp', 'on', True)
     ret, frame = cam.read()
     if not ret:
         print("Fout bij verbinden met camera.")
@@ -109,16 +121,20 @@ while True:
         draw.rectangle((0,0,width,height), outline=0, fill=0)
         disp.image(image)
         disp.display()
+        
+        b.set_light('Hoeklamp', 'on', False)
         break
     #elif k%256 == 32 | GPIO.input(24) == GPIO.HIGH:
     elif GPIO.input(24) == GPIO.HIGH:
         # SPACE
+        
         img_name = "bottle_inspected.png"
         cv2.imwrite(img_name, frame)
         print(">>  Fles vastgelegd en geschreven naar bestand".format(img_name))
         
         # Foto inladen die net is opgeslagen
         bottle_3_channel = cv2.imread(img_name)
+        b.set_light('Hoeklamp', 'bri', 1)
         
         # Sample images als alternatief
         #bottle_3_channel = cv2.imread('/home/pi/BottleCaptureApplication/fles_sample_correct.png')
@@ -381,24 +397,19 @@ while True:
             cv2.imshow("Bottle Inspection", approved_img)
             draw.rectangle((0,0,width,height), outline=0, fill=0)
             draw.text((0, top),       "Fles ",  font=font, fill=255)
-            
-            
-            draw.text((0, top+10),       "goedgekeurd ",  font=big_font, fill=255)
-            
+            draw.text((0, top+10),       "goedgekeurd ",  font=big_font, fill=255)       
             disp.image(image)
             disp.display()
             
-            count = 3
+            b.set_light('Hoeklamp', 'on', True)
+            b.set_light('Hoeklamp', 'hue', 20000)
+            b.set_light('Hoeklamp', 'saturation', 255)
+            b.set_light('Hoeklamp', 'bri', 255)
+            count = 2
             while(count >= 0):
-                GPIO.output(17,False)
-                GPIO.output(18,False)
-                GPIO.output(22,False)
-                GPIO.output(23,True)
+                b.set_light('Hoeklamp', 'on', True)
                 cv2.waitKey(500)
-                GPIO.output(17,False)
-                GPIO.output(18,True)
-                GPIO.output(22,False)
-                GPIO.output(23,False)
+                b.set_light('Hoeklamp', 'on', False)
                 cv2.waitKey(500)
                 count = count - 1
             GPIO.output(17,False)
@@ -419,17 +430,16 @@ while True:
             draw.text((0, top+10),       "afgekeurd ",  font=big_font, fill=255)
             disp.image(image)
             disp.display()
-            count = 3
+            count = 2
+            
+            b.set_light('Hoeklamp', 'on', True)
+            b.set_light('Hoeklamp', 'hue', 0)
+            b.set_light('Hoeklamp', 'saturation', 255)
+            b.set_light('Hoeklamp', 'bri', 255)
             while(count >= 0):
-                GPIO.output(17,False)
-                GPIO.output(18,False)
-                GPIO.output(22,True)
-                GPIO.output(23,False)
+                b.set_light('Hoeklamp', 'on', True)
                 cv2.waitKey(500)
-                GPIO.output(17,True)
-                GPIO.output(18,False)
-                GPIO.output(22,False)
-                GPIO.output(23,False)
+                b.set_light('Hoeklamp', 'on', False)
                 cv2.waitKey(500)
                 count = count - 1
             GPIO.output(17,False)
@@ -437,7 +447,11 @@ while True:
             GPIO.output(22,False)
             GPIO.output(23,False)
             
+            
         
+        b.set_light('Hoeklamp', 'on', True)
+        b.set_light('Hoeklamp', 'hue', 55000)
+        b.set_light('Hoeklamp', 'bri', 137)
         GPIO.output(17,False)
         GPIO.output(18,False)
         GPIO.output(22,False)

@@ -352,7 +352,7 @@ while True:
 
         # Ratio test
         for i,(match1,match2) in enumerate(matches):
-            if match1.distance < 0.3*match2.distance:
+            if match1.distance < 0.4*match2.distance:
                 good.append([match1])
         flann_matches = cv2.drawMatchesKnn(source,kp1,target,kp2,good,None,flags=0)
 

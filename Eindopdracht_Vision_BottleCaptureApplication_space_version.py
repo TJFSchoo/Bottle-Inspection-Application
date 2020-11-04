@@ -81,9 +81,8 @@ b = Bridge('192.168.178.15')
 b.connect()
 b.get_api()
 b.set_light('Hoeklamp', 'on', True)
-b.set_light('Hoeklamp', 'hue', 55000)
-b.set_light('Hoeklamp', 'bri', 137)
-b.set_light('Hoeklamp', 'saturation', 255)
+b.set_light('Hoeklamp', 'hue', 10000)
+b.set_light('Hoeklamp', 'bri', 127)
 
 
 # Camera Capture scherm
@@ -124,9 +123,8 @@ while True:
         
         b.set_light('Hoeklamp', 'on', False)
         break
-    #elif k%256 == 32 | GPIO.input(24) == GPIO.HIGH:
-    elif GPIO.input(24) == GPIO.HIGH:
-        # Physical button
+    elif k%256 == 32:
+        # SPACE
         
         img_name = "bottle_inspected.png"
         cv2.imwrite(img_name, frame)
@@ -146,8 +144,8 @@ while True:
         bottle_gray = cv2.split(bottle_3_channel)[0]
        
         # Check variabelen voor beide checks later in de code
-        bottle_contents_check = 0
-        bottle_cap_check = 0
+        bottle_contents_check = 0;
+        bottle_cap_check = 0;
         
         draw.rectangle((0,0,width,height), outline=0, fill=0)
         draw.text((0, top),       "Verwerken..",  font=font, fill=255)
@@ -167,7 +165,7 @@ while True:
         draw.text((0, top+11),       ">> Blur ",  font=font, fill=255)
         disp.image(image)
         disp.display()
-        cv2.waitKey(500)
+        cv2.waitKey(0)
 
         # Thresholding
         # toegepast voor een duidelijke splitsing van hoge en lage waarden van de image d.m.v. zwarte en witte pixels.
@@ -188,7 +186,7 @@ while True:
         draw.text((0, top+11),       ">> Threshold ",  font=font, fill=255)
         disp.image(image)
         disp.display()
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
         # Inhoud + dop (apart ivm transparantie fles)
         threshold_value = 198.5
@@ -199,7 +197,7 @@ while True:
         cv2.putText(bottle_threshold_screen_output, "inhoud & dop", (10, 410), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), 2)
         cv2.putText(bottle_threshold_screen_output, 'Thresholding', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.imshow("Bottle Inspection", bottle_threshold_screen_output)
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
         # Gradient
         # Zorgt voor een afbeelding met enkel edges, basisweergave contour fles, inhoud en dop
@@ -215,7 +213,7 @@ while True:
         draw.text((0, top+11),       ">> Gradient ",  font=font, fill=255)
         disp.image(image)
         disp.display()
-        cv2.waitKey(500)
+        cv2.waitKey(0)
 
         # Inhoud + dop (apart ivm transparantie fles)
         contour_bottle = cv2.morphologyEx(bottle_threshold,cv2.MORPH_GRADIENT,kernel)
@@ -224,9 +222,9 @@ while True:
         cv2.putText(contour_bottle_screen_output, "inhoud & dop", (10, 410), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 255), 2)
         cv2.putText(contour_bottle_screen_output, 'Gradient', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
         cv2.imshow("Bottle Inspection", contour_bottle_screen_output)
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
-        # Internal contours (fles) berekenen aan de hand van thresholded image
+        # External contours (fles) berekenen aan de hand van thresholded image
         contours, hierarchy = cv2.findContours(contour_bottle_full, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)[-2:]
         print('>>  Externe contouren berekend.')
         external_contours = np.zeros(contour_bottle_full.shape)
@@ -246,7 +244,7 @@ while True:
         draw.text((0, top+11),       ">> Contouren ",  font=font, fill=255)
         disp.image(image)
         disp.display()
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
         # Internal contours (vloeistof+flesdop) berekenen aan de hand van thresholded image
         contours, hierarchy = cv2.findContours(contour_bottle, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)[-2:]
@@ -267,7 +265,7 @@ while True:
         bottle_clone_screen_output = bottle_clone.copy()
         cv2.putText(bottle_clone_screen_output, 'Contour inhoud', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
         cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
         # Contour Flesdop (derde-grootste contour)
         j = len(contours) - 3
@@ -276,7 +274,7 @@ while True:
         bottle_clone_screen_output = bottle_clone.copy()
         cv2.putText(bottle_clone_screen_output, 'Contour dop', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
         cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
         ## Controle 80-90% flesinhoud
         print('>>  Controle inhoud fles op 80-90% inhoud..')
@@ -290,7 +288,11 @@ while True:
         fullBottleHeight = 300
         percentFinal = (h / fullBottleHeight) * 100
         percentFinalRounded = math.floor(percentFinal*10)/10
+        if percentFinalRounded > 100.0:
+            percentFinalRounded = 100.0
         print('>> >>  Fles voor ' + str(percentFinalRounded) + '% gevuld.')
+        
+
         
         # Validatie
         bottle_clone_screen_output = bottle_clone.copy()
@@ -301,7 +303,7 @@ while True:
             cv2.putText(bottle_clone_screen_output, 'Controle inhoud', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
             GPIO.output(23,True)
             print('>> >>  PASS!')
-            bottle_contents_check = 1
+            bottle_contents_check = 1;
             
             draw.rectangle((0,0,width,height), outline=0, fill=0)
             draw.text((0, top),       "Inhoud correct",  font=font, fill=255)
@@ -316,7 +318,7 @@ while True:
             cv2.putText(bottle_clone_screen_output, 'Controle inhoud', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
             GPIO.output(22,True)
             print('>> >>  FAIL!')
-            bottle_contents_check = 0
+            bottle_contents_check = 0;
             
             draw.rectangle((0,0,width,height), outline=0, fill=0)
             draw.text((0, top),       "Inhoud incorrect",  font=font, fill=255)
@@ -324,7 +326,7 @@ while True:
             disp.image(image)
             disp.display()
         cv2.imshow("Bottle Inspection", bottle_clone_screen_output)
-        cv2.waitKey(500)
+        cv2.waitKey(0)
         
         ## Controle flesdop via Feature Matching (met FLANN-based matcher)
         print('>>  Controle flesdop op aanwezigheid en correctheid..')
@@ -363,7 +365,7 @@ while True:
             print('>> >>  FAIL!')
             cv2.putText(flann_matches_screen_output, 'Controle dop', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
             cv2.imshow("Bottle Inspection", flann_matches_screen_output)
-            bottle_cap_check = 0
+            bottle_cap_check = 0;
             
             draw.rectangle((0,0,width,height), outline=0, fill=0)
             draw.text((0, top),       "Dop ",  font=font, fill=255)
@@ -378,7 +380,7 @@ while True:
             print('>> >>  PASS!')
             cv2.putText(flann_matches_screen_output, 'Controle dop', (10,450), cv2.FONT_HERSHEY_TRIPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.imshow("Bottle Inspection", flann_matches_screen_output)
-            bottle_cap_check = 1
+            bottle_cap_check = 1;
             
             draw.rectangle((0,0,width,height), outline=0, fill=0)
             draw.text((0, top),       "Dop ",  font=font, fill=255)
@@ -387,7 +389,7 @@ while True:
             disp.display()
             
             GPIO.output(18,True)
-        cv2.waitKey(2000)
+        cv2.waitKey(0)
             
         # Final keuring
         if bottle_contents_check == 1 and bottle_cap_check == 1:
@@ -403,7 +405,6 @@ while True:
             
             b.set_light('Hoeklamp', 'on', True)
             b.set_light('Hoeklamp', 'hue', 20000)
-            b.set_light('Hoeklamp', 'saturation', 255)
             b.set_light('Hoeklamp', 'bri', 255)
             count = 2
             while(count >= 0):
@@ -434,7 +435,6 @@ while True:
             
             b.set_light('Hoeklamp', 'on', True)
             b.set_light('Hoeklamp', 'hue', 0)
-            b.set_light('Hoeklamp', 'saturation', 255)
             b.set_light('Hoeklamp', 'bri', 255)
             while(count >= 0):
                 b.set_light('Hoeklamp', 'on', True)
@@ -450,8 +450,8 @@ while True:
             
         
         b.set_light('Hoeklamp', 'on', True)
-        b.set_light('Hoeklamp', 'hue', 55000)
-        b.set_light('Hoeklamp', 'bri', 137)
+        b.set_light('Hoeklamp', 'hue', 10000)
+        b.set_light('Hoeklamp', 'bri', 127)
         GPIO.output(17,False)
         GPIO.output(18,False)
         GPIO.output(22,False)
@@ -483,6 +483,7 @@ cv2.destroyAllWindows()
 
 
 # In[ ]:
+
 
 
 
